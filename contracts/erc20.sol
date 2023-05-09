@@ -29,7 +29,7 @@ contract MyToken is ERC20, Ownable {
         );
         require(
             address(this).balance >= tokens / 10,
-            "No enough balance of ether!"
+            "Not enough balance of ether!"
         );
         super._transfer(msg.sender, super.owner(), tokens);
         payable(msg.sender).transfer(tokens / 10);
