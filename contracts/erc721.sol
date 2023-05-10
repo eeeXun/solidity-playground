@@ -67,7 +67,7 @@ contract MyNFT is ERC721URIStorage, Ownable {
             "Not enough ether to buy the NFT!"
         );
         // Update the price
-        if (msg.value >= prices[tokenId]) {
+        if (msg.value > prices[tokenId]) {
             prices[tokenId] = msg.value;
         }
         payable(super.ownerOf(tokenId)).transfer(msg.value);
