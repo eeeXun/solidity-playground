@@ -14,6 +14,10 @@ contract MyToken is ERC20, Ownable {
         selfdestruct(payable(super.owner()));
     }
 
+    function remaining() public view returns (uint256) {
+        return super.balanceOf(super.owner());
+    }
+
     // buy token
     // 1 ether = 10 token
     receive() external payable {
