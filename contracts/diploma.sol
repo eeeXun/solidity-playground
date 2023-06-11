@@ -13,8 +13,8 @@ contract Diploma {
     // receiver address => degree => department => data
     mapping(address => mapping(string => mapping(string => DiplomaData))) assignment;
 
-    event Award(address receiver, string degree, string department);
-    event Revoke(address receiver, string degree, string department);
+    event Award(address indexed receiver, string degree, string department);
+    event Revoke(address indexed receiver, string degree, string department);
 
     // Award without image
     function award(
