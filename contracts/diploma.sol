@@ -13,6 +13,7 @@ contract Diploma {
     // receiver address => degree => department => data
     mapping(address => mapping(string => mapping(string => DiplomaData))) assignment;
 
+    // https://github.com/web3/web3.js/issues/535
     event Award(address indexed receiver, string degree, string department);
     event Revoke(address indexed receiver, string degree, string department);
 
