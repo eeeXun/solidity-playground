@@ -10,27 +10,28 @@ struct DiplomaData {
 }
 
 contract Diploma {
-    // receiver address => degree => data
-    mapping(address => mapping(string => DiplomaData)) assignment;
+    // receiver address => degree => department => data
+    mapping(address => mapping(string => mapping(string => DiplomaData))) assignment;
 
-    event Award(address receiver, string degree);
-    event Revoke(address receiver, string degree);
+    event Award(address receiver, string degree, string department);
+    event Revoke(address receiver, string degree, string department);
 
     // Award without image
     function award(
         address to,
         string memory name,
         string memory degree,
+        string memory department,
         uint256 year
     ) public {
-        assignment[to][degree] = DiplomaData({
+        assignment[to][degree][department] = DiplomaData({
             assignor: msg.sender,
             name: name,
             year: year,
             img: "",
             revoke: false
         });
-        emit Award(to, degree);
+        emit Award(to, degree, department);
     }
 
     // Award with image
@@ -38,26 +39,31 @@ contract Diploma {
         address to,
         string memory name,
         string memory degree,
+        string memory department,
         string memory img,
         uint256 year
     ) public {
-        assignment[to][degree] = DiplomaData({
+        assignment[to][degree][department] = DiplomaData({
             assignor: msg.sender,
             name: name,
             year: year,
             img: img,
             revoke: false
         });
-        emit Award(to, degree);
+        emit Award(to, degree, department);
     }
 
     // Revoke diploma
-    function revoke(address to, string memory degree) public {
+    function revoke(
+        address to,
+        string memory degree,
+        string memory department
+    ) public {
         require(
-            assignment[to][degree].assignor == msg.sender,
+            assignment[to][degree][department].assignor == msg.sender,
             "You can't revoke the diploma!"
         );
-        assignment[to][degree].revoke = true;
-        emit Revoke(to, degree);
+        assignment[to][degree][department].revoke = true;
+        emit Revoke(to, degree, department);
     }
 }
