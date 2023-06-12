@@ -14,8 +14,18 @@ contract Diploma {
     mapping(address => mapping(string => mapping(string => DiplomaData))) assignment;
 
     // https://github.com/web3/web3.js/issues/535
-    event Award(address indexed receiver, string degree, string department);
-    event Revoke(address indexed receiver, string degree, string department);
+    event Award(
+        address indexed from,
+        address indexed to,
+        string degree,
+        string department
+    );
+    event Revoke(
+        address indexed from,
+        address indexed to,
+        string degree,
+        string department
+    );
 
     // Award without image
     function award(
@@ -32,7 +42,7 @@ contract Diploma {
             img: "",
             revoke: false
         });
-        emit Award(to, degree, department);
+        emit Award(msg.sender, to, degree, department);
     }
 
     // Award with image
@@ -51,7 +61,7 @@ contract Diploma {
             img: img,
             revoke: false
         });
-        emit Award(to, degree, department);
+        emit Award(msg.sender, to, degree, department);
     }
 
     // Revoke diploma
@@ -65,6 +75,6 @@ contract Diploma {
             "You can't revoke the diploma!"
         );
         assignment[to][degree][department].revoke = true;
-        emit Revoke(to, degree, department);
+        emit Revoke(msg.sender, to, degree, department);
     }
 }
