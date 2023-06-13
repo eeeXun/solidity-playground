@@ -6,6 +6,8 @@ struct DiplomaData {
     string name;
     uint256 year;
     string img;
+    bool valid;
+    bool reject;
     bool revoke;
 }
 
@@ -20,12 +22,101 @@ contract Diploma {
         string degree,
         string department
     );
+    event Request(
+        address indexed from,
+        address indexed to,
+        string degree,
+        string department
+    );
     event Revoke(
         address indexed from,
         address indexed to,
         string degree,
         string department
     );
+
+    function getData(
+        address addr,
+        string memory degree,
+        string memory department
+    ) public view returns (DiplomaData memory) {
+        return assignment[addr][degree][department];
+    }
+
+    // request without image
+    function request(
+        address to,
+        string memory name,
+        string memory degree,
+        string memory department,
+        uint256 year
+    ) public {
+        require(
+            !assignment[msg.sender][degree][department].valid,
+            "Diploma already exist!"
+        );
+        assignment[msg.sender][degree][department] = DiplomaData({
+            assignor: to,
+            name: name,
+            year: year,
+            img: "",
+            valid: false,
+            reject: false,
+            revoke: false
+        });
+        emit Request(msg.sender, to, degree, department);
+    }
+
+    // request without image
+    function request(
+        address to,
+        string memory name,
+        string memory degree,
+        string memory department,
+        string memory img,
+        uint256 year
+    ) public {
+        require(
+            !assignment[msg.sender][degree][department].valid,
+            "Diploma already exist!"
+        );
+        assignment[msg.sender][degree][department] = DiplomaData({
+            assignor: to,
+            name: name,
+            year: year,
+            img: img,
+            valid: false,
+            reject: false,
+            revoke: false
+        });
+        emit Request(msg.sender, to, degree, department);
+    }
+
+    // confirm the request
+    function confirm(
+        address addr,
+        string memory degree,
+        string memory department
+    ) public {
+        require(
+            assignment[addr][degree][department].assignor == msg.sender,
+            "You can't confirm this diploma!"
+        );
+        assignment[addr][degree][department].valid = true;
+    }
+
+    // reject the request
+    function reject(
+        address addr,
+        string memory degree,
+        string memory department
+    ) public {
+        require(
+            assignment[addr][degree][department].assignor == msg.sender,
+            "You can't reject this diploma!"
+        );
+        assignment[addr][degree][department].reject = true;
+    }
 
     // Award without image
     function award(
@@ -35,11 +126,17 @@ contract Diploma {
         string memory department,
         uint256 year
     ) public {
+        require(
+            !assignment[to][degree][department].valid,
+            "Diploma already exist!"
+        );
         assignment[to][degree][department] = DiplomaData({
             assignor: msg.sender,
             name: name,
             year: year,
             img: "",
+            valid: true,
+            reject: false,
             revoke: false
         });
         emit Award(msg.sender, to, degree, department);
@@ -54,11 +151,17 @@ contract Diploma {
         string memory img,
         uint256 year
     ) public {
+        require(
+            !assignment[to][degree][department].valid,
+            "Diploma already exist!"
+        );
         assignment[to][degree][department] = DiplomaData({
             assignor: msg.sender,
             name: name,
             year: year,
             img: img,
+            valid: true,
+            reject: false,
             revoke: false
         });
         emit Award(msg.sender, to, degree, department);
