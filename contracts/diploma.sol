@@ -57,7 +57,7 @@ contract Diploma {
             "Diploma already exist!"
         );
         require(
-            !assignment[msg.sender][degree][department].reject,
+            assignment[msg.sender][degree][department].reject,
             "Your diploma is under review! Don't resend it!"
         );
         assignment[msg.sender][degree][department] = DiplomaData({
