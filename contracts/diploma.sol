@@ -43,31 +43,7 @@ contract Diploma {
         return assignment[addr][degree][department];
     }
 
-    // request without image
-    function request(
-        address to,
-        string memory name,
-        string memory degree,
-        string memory department,
-        uint256 year
-    ) public {
-        require(
-            !assignment[msg.sender][degree][department].valid,
-            "Diploma already exist!"
-        );
-        assignment[msg.sender][degree][department] = DiplomaData({
-            assignor: to,
-            name: name,
-            year: year,
-            img: "",
-            valid: false,
-            reject: false,
-            revoke: false
-        });
-        emit Request(msg.sender, to, degree, department);
-    }
-
-    // request without image
+    // Request diploma
     function request(
         address to,
         string memory name,
@@ -92,8 +68,8 @@ contract Diploma {
         emit Request(msg.sender, to, degree, department);
     }
 
-    // confirm the request
-    function confirm(
+    // Approve the request
+    function approve(
         address addr,
         string memory degree,
         string memory department
@@ -103,9 +79,10 @@ contract Diploma {
             "You can't confirm this diploma!"
         );
         assignment[addr][degree][department].valid = true;
+        emit Award(msg.sender, addr, degree, department);
     }
 
-    // reject the request
+    // Reject the request
     function reject(
         address addr,
         string memory degree,
@@ -118,31 +95,7 @@ contract Diploma {
         assignment[addr][degree][department].reject = true;
     }
 
-    // Award without image
-    function award(
-        address to,
-        string memory name,
-        string memory degree,
-        string memory department,
-        uint256 year
-    ) public {
-        require(
-            !assignment[to][degree][department].valid,
-            "Diploma already exist!"
-        );
-        assignment[to][degree][department] = DiplomaData({
-            assignor: msg.sender,
-            name: name,
-            year: year,
-            img: "",
-            valid: true,
-            reject: false,
-            revoke: false
-        });
-        emit Award(msg.sender, to, degree, department);
-    }
-
-    // Award with image
+    // Award diploma
     function award(
         address to,
         string memory name,
@@ -176,6 +129,10 @@ contract Diploma {
         require(
             assignment[to][degree][department].assignor == msg.sender,
             "You can't revoke the diploma!"
+        );
+        require(
+            assignment[to][degree][department].valid,
+            "This diploma is not valid! Not need to revoke it!"
         );
         assignment[to][degree][department].revoke = true;
         emit Revoke(msg.sender, to, degree, department);
