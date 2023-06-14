@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+
 struct DiplomaData {
     address assignor;
     string name;
@@ -16,6 +18,15 @@ contract Diploma {
     // receiver address => degree => department => data
     mapping(address => mapping(string => mapping(string => DiplomaData))) assignment;
 
+    AggregatorV3Interface internal dataFeed;
+
+    constructor() {
+        // ETH / USD
+        dataFeed = AggregatorV3Interface(
+            0x694AA1769357215DE4FAC081bf1f309aDC325306
+        );
+    }
+
     // https://github.com/web3/web3.js/issues/535
     event Grant(
         address indexed from,
@@ -29,6 +40,15 @@ contract Diploma {
         string degree,
         string department
     );
+
+    // Request Fee is 10 USD
+    // 1 ETH = answer/(10**8) (USD)
+    // 1 USD = (10**8)/answer (ETH)
+    // 10 USD = (10**9)/answer * (10**18) (Wei) = (10**27)/answer (Wei)
+    function getFee() public view returns (int256) {
+        (, int256 answer, , , ) = dataFeed.latestRoundData();
+        return (10**27) / answer;
+    }
 
     function getData(
         address addr,
@@ -46,7 +66,7 @@ contract Diploma {
         string memory department,
         string memory img,
         uint256 year
-    ) public {
+    ) public payable {
         require(
             !assignment[msg.sender][degree][department].valid,
             "Diploma already exist!"
@@ -55,6 +75,9 @@ contract Diploma {
             !assignment[msg.sender][degree][department].reviewing,
             "Your diploma is under review! Don't resend it!"
         );
+        (, int256 answer, , , ) = dataFeed.latestRoundData();
+        require(int256(msg.value) >= (10**27) / answer, "Insufficient Fee!");
+        payable(to).transfer(msg.value);
         assignment[msg.sender][degree][department] = DiplomaData({
             assignor: to,
             name: name,
