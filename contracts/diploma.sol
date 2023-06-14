@@ -6,6 +6,7 @@ struct DiplomaData {
     string name;
     uint256 year;
     string img;
+    bool reviewing;
     bool valid;
     bool reject;
     bool revoke;
@@ -16,19 +17,13 @@ contract Diploma {
     mapping(address => mapping(string => mapping(string => DiplomaData))) assignment;
 
     // https://github.com/web3/web3.js/issues/535
-    event Award(
+    event Grant(
         address indexed from,
         address indexed to,
         string degree,
         string department
     );
     event Request(
-        address indexed from,
-        address indexed to,
-        string degree,
-        string department
-    );
-    event Revoke(
         address indexed from,
         address indexed to,
         string degree,
@@ -57,7 +52,7 @@ contract Diploma {
             "Diploma already exist!"
         );
         require(
-            assignment[msg.sender][degree][department].reject,
+            !assignment[msg.sender][degree][department].reviewing,
             "Your diploma is under review! Don't resend it!"
         );
         assignment[msg.sender][degree][department] = DiplomaData({
@@ -65,6 +60,7 @@ contract Diploma {
             name: name,
             year: year,
             img: img,
+            reviewing: true,
             valid: false,
             reject: false,
             revoke: false
@@ -83,7 +79,8 @@ contract Diploma {
             "You can't confirm this diploma!"
         );
         assignment[addr][degree][department].valid = true;
-        emit Award(msg.sender, addr, degree, department);
+        assignment[addr][degree][department].reviewing = false;
+        emit Grant(msg.sender, addr, degree, department);
     }
 
     // Reject the request
@@ -97,10 +94,11 @@ contract Diploma {
             "You can't reject this diploma!"
         );
         assignment[addr][degree][department].reject = true;
+        assignment[addr][degree][department].reviewing = false;
     }
 
-    // Award diploma
-    function award(
+    // Grant diploma
+    function grant(
         address to,
         string memory name,
         string memory degree,
@@ -117,11 +115,12 @@ contract Diploma {
             name: name,
             year: year,
             img: img,
+            reviewing: false,
             valid: true,
             reject: false,
             revoke: false
         });
-        emit Award(msg.sender, to, degree, department);
+        emit Grant(msg.sender, to, degree, department);
     }
 
     // Revoke diploma
@@ -139,6 +138,22 @@ contract Diploma {
             "This diploma is not valid! Not need to revoke it!"
         );
         assignment[to][degree][department].revoke = true;
-        emit Revoke(msg.sender, to, degree, department);
+    }
+
+    // Recover diploma
+    function recover(
+        address to,
+        string memory degree,
+        string memory department
+    ) public {
+        require(
+            assignment[to][degree][department].assignor == msg.sender,
+            "You can't recover the diploma!"
+        );
+        require(
+            assignment[to][degree][department].valid,
+            "This diploma is not valid! Not need to recover it!"
+        );
+        assignment[to][degree][department].revoke = false;
     }
 }
