@@ -10,8 +10,8 @@ struct DiplomaData {
     string img;
     bool reviewing;
     bool valid;
-    bool reject;
-    bool revoke;
+    bool rejected;
+    bool revoked;
 }
 
 contract Diploma {
@@ -72,8 +72,9 @@ contract Diploma {
             "Diploma already exist!"
         );
         require(
-            !assignment[msg.sender][degree][department].reviewing,
-            "Your diploma is under review! Don't resend it!"
+            !assignment[msg.sender][degree][department].reviewing &&
+                !assignment[msg.sender][degree][department].rejected,
+            "Your diploma is under review or rejected! Don't resend it!"
         );
         (, int256 answer, , , ) = dataFeed.latestRoundData();
         require(int256(msg.value) >= (10**27) / answer, "Insufficient Fee!");
@@ -85,8 +86,8 @@ contract Diploma {
             img: img,
             reviewing: true,
             valid: false,
-            reject: false,
-            revoke: false
+            rejected: false,
+            revoked: false
         });
         emit Request(msg.sender, to, degree, department);
     }
@@ -116,7 +117,7 @@ contract Diploma {
             assignment[addr][degree][department].assignor == msg.sender,
             "You can't reject this diploma!"
         );
-        assignment[addr][degree][department].reject = true;
+        assignment[addr][degree][department].rejected = true;
         assignment[addr][degree][department].reviewing = false;
     }
 
@@ -140,8 +141,8 @@ contract Diploma {
             img: img,
             reviewing: false,
             valid: true,
-            reject: false,
-            revoke: false
+            rejected: false,
+            revoked: false
         });
         emit Grant(msg.sender, to, degree, department);
     }
@@ -160,7 +161,7 @@ contract Diploma {
             assignment[to][degree][department].valid,
             "This diploma is not valid! Not need to revoke it!"
         );
-        assignment[to][degree][department].revoke = true;
+        assignment[to][degree][department].revoked = true;
     }
 
     // Recover diploma
@@ -177,6 +178,6 @@ contract Diploma {
             assignment[to][degree][department].valid,
             "This diploma is not valid! Not need to recover it!"
         );
-        assignment[to][degree][department].revoke = false;
+        assignment[to][degree][department].revoked = false;
     }
 }
