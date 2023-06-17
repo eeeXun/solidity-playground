@@ -99,7 +99,8 @@ contract Diploma {
         string memory department
     ) public {
         require(
-            assignment[addr][degree][department].assignor == msg.sender,
+            assignment[addr][degree][department].reviewing &&
+                assignment[addr][degree][department].assignor == msg.sender,
             "You can't confirm this diploma!"
         );
         assignment[addr][degree][department].valid = true;
@@ -114,37 +115,12 @@ contract Diploma {
         string memory department
     ) public {
         require(
-            assignment[addr][degree][department].assignor == msg.sender,
+            assignment[addr][degree][department].reviewing &&
+                assignment[addr][degree][department].assignor == msg.sender,
             "You can't reject this diploma!"
         );
         assignment[addr][degree][department].rejected = true;
         assignment[addr][degree][department].reviewing = false;
-    }
-
-    // Grant diploma
-    function grant(
-        address to,
-        string memory name,
-        string memory degree,
-        string memory department,
-        string memory img,
-        uint256 year
-    ) public {
-        require(
-            !assignment[to][degree][department].valid,
-            "Diploma already exist!"
-        );
-        assignment[to][degree][department] = DiplomaData({
-            assignor: msg.sender,
-            name: name,
-            year: year,
-            img: img,
-            reviewing: false,
-            valid: true,
-            rejected: false,
-            revoked: false
-        });
-        emit Grant(msg.sender, to, degree, department);
     }
 
     // Revoke diploma
